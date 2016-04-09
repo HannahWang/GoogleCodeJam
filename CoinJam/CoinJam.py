@@ -1,4 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
+import pickle
+import os
 
 class DetectedPrimes:
     def __init__(self, MaxPrime, PrimeList):
@@ -6,20 +8,18 @@ class DetectedPrimes:
         self.PrimeList = PrimeList
 
     def updatePrimeList(self, maxn):
+        self.MaxPrime = self.MaxPrime+1 if (self.MaxPrime+1)%2 == 0 else self.MaxPrime
+        print("MaxPrime: "+str(self.MaxPrime)+", Next_MaxPrime: "+str(maxn))
         with ProcessPoolExecutor(max_workers = 2) as executor:
-            self.MaxPrime = self.MaxPrime+1 if (self.MaxPrime+1)%2 == 0 else self.MaxPrime
-            print("MaxPrime: "+str(self.MaxPrime)+", Next_MaxPrime: "+str(maxn))
-            #for i in range(self.MaxPrime+1, maxn+1, 2):
-            #    if self.prime(i, self.PrimeList):
-            #        self.PrimeList.append(i)
             for num, is_prime in zip(range(self.MaxPrime+1, maxn+1, 2), executor.map(self.prime, range(self.MaxPrime+1, maxn+1, 2))):
                 if is_prime:
                     self.PrimeList.append(num)    
-            self.MaxPrime = maxn
+        self.MaxPrime = maxn
+        with open("primes.pickle", "wb") as fout:
+            pickle.dump(self, fout)
 
     def prime(self, num): #find whether num is a prime
         up = int(num**0.5)
-        #for i in range(2, up):
         for i in self.PrimeList:
             if i > up:
                 break
@@ -37,14 +37,22 @@ def PrimeFromDetected(num, primes):
         if num%p == 0:
             return p
     if up > primes.MaxPrime:
-        primes.updatePrimeList(up)
-    for p in primes.PrimeList:
-        if num%p == 0:
-            return p
+        start = primes.MaxPrime+1 if (primes.MaxPrime)%2 == 0 else primes.MaxPrime
+        for i in range(start, up, 2):
+            if num%i == 0:
+                primes.updatePrimeList(i)
+                return i
+        #for p in primes.PrimeList:
+        #    if num%p == 0:
+        #    return p
     return 0
 
 def CoinJam(N, J):
-    PRIMES = DetectedPrimes(30, [2,3,5,7,11,13,17,19,23,29])
+    if os.path.isfile("primes.pickle"):
+        with open("primes.pickle", "rb") as fin:
+            PRIMES = pickle.load(fin)
+    else:
+        PRIMES = DetectedPrimes(30, [2,3,5,7,11,13,17,19,23,29])
     mustadd = {base:base**(N-1)+1 for base in range(2,11)}
     valid_jamcoins = []
     tried_jamcoins = set()
