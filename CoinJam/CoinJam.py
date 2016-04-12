@@ -30,7 +30,16 @@ class DetectedPrimes:
 def PrimeFromDetected(num, primes):
     up = int(num**0.5)
     if num in primes.PrimeList:
+    #if num in primes:
         return 0
+    if num%2 == 0:
+        return 2 
+    for i in range(3, up, 2):
+        if num%i == 0:
+            return i
+        elif i > primes.MaxPrime:
+            break
+    '''
     for p in primes.PrimeList:
         if p > up:
             break
@@ -45,6 +54,7 @@ def PrimeFromDetected(num, primes):
         #for p in primes.PrimeList:
         #    if num%p == 0:
         #    return p
+    '''
     return 0
 
 def CoinJam(N, J):
@@ -53,6 +63,7 @@ def CoinJam(N, J):
             PRIMES = pickle.load(fin)
     else:
         PRIMES = DetectedPrimes(30, [2,3,5,7,11,13,17,19,23,29])
+        #PRIMES = [2,3,5,7,11,13,17,19,23,29]
     mustadd = {base:base**(N-1)+1 for base in range(2,11)}
     valid_jamcoins = []
     tried_jamcoins = set()
