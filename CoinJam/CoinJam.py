@@ -7,25 +7,6 @@ class DetectedPrimes:
         self.MaxPrime = MaxPrime
         self.PrimeList = PrimeList
 
-    def updatePrimeList(self, maxn):
-        self.MaxPrime = self.MaxPrime+1 if (self.MaxPrime+1)%2 == 0 else self.MaxPrime
-        print("MaxPrime: "+str(self.MaxPrime)+", Next_MaxPrime: "+str(maxn))
-        with ProcessPoolExecutor(max_workers = 2) as executor:
-            for num, is_prime in zip(range(self.MaxPrime+1, maxn+1, 2), executor.map(self.prime, range(self.MaxPrime+1, maxn+1, 2))):
-                if is_prime:
-                    self.PrimeList.append(num)    
-        self.MaxPrime = maxn
-        with open("primes.pickle", "wb") as fout:
-            pickle.dump(self, fout)
-
-    def prime(self, num): #find whether num is a prime
-        up = int(num**0.5)
-        for i in self.PrimeList:
-            if i > up:
-                break
-            if num%i == 0:
-                return False
-        return True
 
 def PrimeFromDetected(num, primes):
     up = int(num**0.5)
@@ -37,24 +18,9 @@ def PrimeFromDetected(num, primes):
     for i in range(3, up, 2):
         if num%i == 0:
             return i
-        elif i > primes.MaxPrime:
+        elif i > 10000:
+        #elif i > primes.MaxPrime:
             break
-    '''
-    for p in primes.PrimeList:
-        if p > up:
-            break
-        if num%p == 0:
-            return p
-    if up > primes.MaxPrime:
-        start = primes.MaxPrime+1 if (primes.MaxPrime)%2 == 0 else primes.MaxPrime
-        for i in range(start, up, 2):
-            if num%i == 0:
-                primes.updatePrimeList(i)
-                return i
-        #for p in primes.PrimeList:
-        #    if num%p == 0:
-        #    return p
-    '''
     return 0
 
 def CoinJam(N, J):
@@ -63,7 +29,6 @@ def CoinJam(N, J):
             PRIMES = pickle.load(fin)
     else:
         PRIMES = DetectedPrimes(30, [2,3,5,7,11,13,17,19,23,29])
-        #PRIMES = [2,3,5,7,11,13,17,19,23,29]
     mustadd = {base:base**(N-1)+1 for base in range(2,11)}
     valid_jamcoins = []
     tried_jamcoins = set()

@@ -3,37 +3,6 @@ import itertools
 def countL(trans_seq):
     return [tile.count('L') for tile in trans_seq]
 
-def compare_children(Lpos, mutual, diff):
-    return 0
-
-def Compare(Lpos, worker):
-    combinations = itertools.combinations(Lpos.keys(),worker)
-    bingo = 0
-    for possible in combinations:
-        mutualcompare = itertools.combinations(possible, 2)
-        for mc in mutualcompare:
-            Difference = {}
-            for emc in mc:
-                union = set()
-                for idx in Lpos[emc]:
-                    union.add(idx)
-                if len(union) > worker+1:
-                    break
-                Difference[mc] = len(union)
-            if min(Difference) != worker +1:
-                break
-            #minDiffpos = [diff for diff, freq in Difference.items() if freq==worker]
-            #for mdp in minDiffpos:
-            #    for p in mdp:
-            #        sameposlist = [diff for diff in Difference.keys() if p in diff]
-            #for  
-
-            if len(union) == worker+1:
-                bingo += 1
-        if bingo >= worker-1:
-            return possible
-    return [-1]
-
 def Fractiles(K,C,S):
     tiles_n = K**C
     trans_seq = [[] for i in range(tiles_n)]
@@ -56,33 +25,19 @@ def Fractiles(K,C,S):
         for i in range(tiles_n):
             trans_seq[i].append(tmpseq[i])
     # Check if students can help clean choices
-    print("trans_seq:")
-    print(trans_seq)
     Lfreq = countL(trans_seq)
+    max_worker = max(max(Lfreq), S)
     minL = min(Lfreq)
-    print("Lfreq:")
-    print(Lfreq)
     possible = [i for i in range(len(Lfreq)) if Lfreq[i]<S+1]
-    print("possible:")
-    print(possible)
-    # TODO
-    for worker in range(minL, S+1):
-        
-        #if worker > Lfreq.count(worker):
-        #    continue
-        Lpos = {}
-        for tile_no in possible:
-            if Lfreq[tile_no] <= worker:
-                Lpos[tile_no] = [pos for pos, char in enumerate(trans_seq[tile_no]) if char=="L"]
-        print("Lpos:")
-        print(Lpos)
-        answer = Compare(Lpos, worker)
-        if -1 not in answer:
-            print(answer)
-            print()
-            return " ".join([str(ans) for ans in answer])
-    print()
-    print("IMPOSSIBLE")
+    for worker in range(minL, max_worker+1):
+        possible_sets = [s for s in itertools.combinations(possible, worker)]
+        for pset in possible_sets:
+            p_tran = [trans_seq[i] for i in pset]
+            p_transpose = [list(x) for x in zip(*p_tran)]
+            p_transpose_countL = countL(p_transpose)
+            if p_transpose_countL.count(max(p_transpose_countL)) == 1:
+                return " ".join([str(i+1) for i in pset])
+    
     return "IMPOSSIBLE"
 
 def ansFractiles(n, tests):
@@ -91,6 +46,7 @@ def ansFractiles(n, tests):
         test = TestCase[i]
         K, C, S = test.split()
         outputline = "Case #" + str(i+1) + ": " + str(Fractiles(int(K),int(C),int(S)))
+        print(outputline)
         output = output + outputline + "\n"
     output_file = open("Fractiles_output-B.txt", "w")
     #output_file = open("B-small_output"+attempt+".txt", "w")
